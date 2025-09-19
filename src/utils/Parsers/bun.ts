@@ -7,7 +7,6 @@ export const parseBun = (projectPath: string) => {
     const raw = readFileSync(pkgPath, 'utf-8');
     const pkg = JSON.parse(raw);
 
-    // Collect only direct dependencies
     const deps = {
       ...pkg.dependencies,
       ...pkg.devDependencies,
