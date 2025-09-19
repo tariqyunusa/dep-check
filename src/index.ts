@@ -2,6 +2,8 @@
 import {detectPackageManager} from './utils/detect';
 import {resolve} from 'path';
 import {parseNpm} from './utils/Parsers/npm';
+import {parseYarn} from './utils/Parsers/yarn';
+import {parsePnpm} from './utils/Parsers/pnpm';
 
 const projectPath = process.argv[2] ? resolve(process.argv[2]) : process.cwd();
 
@@ -14,6 +16,14 @@ let installed: string[] = [];
 switch (pm) {
   case 'npm':
     installed = parseNpm(projectPath);
+    break;
+
+  case 'yarn':
+    installed = parseYarn(projectPath);
+    break;
+
+  case 'pnpm':
+    installed = parsePnpm(projectPath);
     break;
   default:
     console.log('Unsupported package manager for now');
