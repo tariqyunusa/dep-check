@@ -1,11 +1,10 @@
 import {readFileSync} from 'fs';
 import {join} from 'path';
-import {parse} from 'yaml';
 
 export const parsePnpm = (projectPath: string) => {
-  const filePath = join(projectPath, 'pnpm-lock.yaml');
-  const raw = readFileSync(filePath, 'utf-8');
-  const parsed = parse(raw);
+  const pkgPath = join(projectPath, 'package.json');
+  const raw = readFileSync(pkgPath, 'utf-8');
+  const pkg = JSON.parse(raw);
 
-  return Object.keys(parsed.packages || {});
+  return [...Object.keys(pkg.dependencies || {}), ...Object.keys(pkg.devDependencies || {})];
 };

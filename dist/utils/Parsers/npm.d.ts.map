@@ -1,1 +1,1 @@
-{"version":3,"file":"npm.d.ts","sourceRoot":"","sources":["../../../src/utils/Parsers/npm.ts"],"names":[],"mappings":"AAGA,eAAO,MAAM,QAAQ,GAAI,aAAa,MAAM,aA2B3C,CAAC"}
+{"version":3,"file":"npm.d.ts","sourceRoot":"","sources":["../../../src/utils/Parsers/npm.ts"],"names":[],"mappings":"AAGA,eAAO,MAAM,QAAQ,GAAI,aAAa,MAAM,aAyB3C,CAAC"}

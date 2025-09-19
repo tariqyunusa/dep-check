@@ -13,11 +13,9 @@ const parseNpm = (projectPath) => {
         ...pkgJson.devDependencies,
     };
     if (lockJson.dependencies) {
-        // legacy lockfile
         return Object.keys(declared).filter((dep) => Object.prototype.hasOwnProperty.call(lockJson.dependencies, dep));
     }
     if (lockJson.packages) {
-        // modern lockfile
         return Object.keys(declared).filter((dep) => Object.keys(lockJson.packages).includes(`node_modules/${dep}`));
     }
     return [];
