@@ -4,6 +4,7 @@ import {resolve} from 'path';
 import {parseNpm} from './utils/Parsers/npm';
 import {parseYarn} from './utils/Parsers/yarn';
 import {parsePnpm} from './utils/Parsers/pnpm';
+import {parseBun} from './utils/Parsers/bun';
 
 const projectPath = process.argv[2] ? resolve(process.argv[2]) : process.cwd();
 
@@ -25,8 +26,13 @@ switch (pm) {
   case 'pnpm':
     installed = parsePnpm(projectPath);
     break;
+
+  case 'bun':
+    installed = parseBun(projectPath);
+    break;
+
   default:
-    console.log('Unsupported package manager for now');
+    console.log('Unsupported package manager or none detected.');
     process.exit(1);
 }
 
