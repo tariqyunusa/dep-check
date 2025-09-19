@@ -1,13 +1,10 @@
 import {readFileSync} from 'fs';
 import {join} from 'path';
-import {parse} from '@yarnpkg/lockfile';
 
-const parseYarn = (projectPath: string) => {
-  const filePath = join(projectPath, 'yarn.lock');
-  const raw = readFileSync(filePath, 'utf-8');
-  const parsed = parse(raw);
+export const parseYarn = (projectPath: string): string[] => {
+  const pkgPath = join(projectPath, 'package.json');
+  const raw = readFileSync(pkgPath, 'utf-8');
+  const pkg = JSON.parse(raw);
 
-  return Object.keys(parsed.object || {});
+  return [...Object.keys(pkg.dependencies || {}), ...Object.keys(pkg.devDependencies || {})];
 };
-
-export {parseYarn};
