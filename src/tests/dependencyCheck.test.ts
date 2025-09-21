@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { join } from "path";
-import { parseNpm } from "../src/utils/Parsers/npm";
-import { findUsedDependencies, analyzeDependencies } from "../src/utils/dependencyCheck";
+import { parseNpm } from "../utils/Parsers/npm";
+import { findUsedDependencies, analyzeDependencies } from "../utils/dependencyChecks";
 
 const EXAMPLES_DIR = join(__dirname, "../examples");
 
