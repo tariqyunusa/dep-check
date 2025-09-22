@@ -27,12 +27,12 @@ export function findUsedDependencies(projectPath: string): string[] {
 
     let match: RegExpExecArray | null;
     while ((match = importRegex.exec(code)) !== null) {
-      const dep = match[1]?.split("/")[0]; // 👈 safe access
+      const dep = match[1]?.split("/")[0]; 
       if (dep && !dep.startsWith(".")) used.add(dep);
     }
 
     while ((match = requireRegex.exec(code)) !== null) {
-      const dep = match[1]?.split("/")[0]; // 👈 safe access
+      const dep = match[1]?.split("/")[0];
       if (dep && !dep.startsWith(".")) used.add(dep);
     }
   }
