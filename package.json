@@ -1,6 +1,6 @@
 {
  "name": "tidy-deps",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Easily detect and remove unused npm dependencies",
   "main": "index.js",
   "scripts": {
@@ -13,8 +13,7 @@
   },
   "keywords": [ "dependencies", "clean dependencies", "remove unused dependencies", "unused dependencies", " clean" ,"npm", "yarn", "pnpm"],
   "author": "Tariq Yunusa",
-  "license": "ISC",
-  "description": "",
+  "license": "MIT",
   "devDependencies": {
     "@types/node": "^24.5.1",
     "@types/yarnpkg__lockfile": "^1.1.9",

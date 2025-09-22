@@ -46,3 +46,6 @@ tidy-deps
 ## Requirements
 Node.js >= 14
 
+## 📜 License
+MIT © 2025 Tariq Yunusa
+
