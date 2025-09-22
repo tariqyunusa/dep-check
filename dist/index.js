@@ -68,7 +68,6 @@ const used = (0, dependencyChecks_1.findUsedDependencies)(projectPath);
 const { unused, missing } = (0, dependencyChecks_1.analyzeDependencies)(".", used);
 console.log("✅ Used:", used);
 console.log("🗑️ Unused:", unused);
-console.log("❌ Missing:", missing);
 if (unused.length > 0) {
     const rl = readline.createInterface({
         input: process.stdin,

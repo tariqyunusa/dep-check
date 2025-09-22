@@ -1,6 +1,7 @@
 {
-  "name": "dep-check",
-  "version": "1.0.0",
+ "name": "tidy-deps",
+  "version": "1.0.1",
+  "description": "Easily detect and remove unused npm dependencies",
   "main": "index.js",
   "scripts": {
     "build": "tsc",
@@ -10,8 +11,8 @@
   "bin": {
     "dep-check": "dist/index.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [ "dependencies", "clean dependencies", "remove unused dependencies", "unused dependencies", " clean" ,"npm", "yarn", "pnpm"],
+  "author": "Tariq Yunusa",
   "license": "ISC",
   "description": "",
   "devDependencies": {

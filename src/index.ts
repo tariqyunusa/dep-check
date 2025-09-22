@@ -38,7 +38,7 @@ const { unused, missing } = analyzeDependencies(".", used);
 
 console.log("✅ Used:", used);
 console.log("🗑️ Unused:", unused);
-console.log("❌ Missing:", missing);
+
 
 if (unused.length > 0) {
   const rl = readline.createInterface({
