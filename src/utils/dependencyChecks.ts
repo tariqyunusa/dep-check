@@ -1,12 +1,13 @@
-import {readdirSync, readFileSync, statSync} from 'fs';
-import {join, extname} from 'path';
+import { readdirSync, readFileSync, statSync } from "fs";
+import { join, extname } from "path";
+import { builtinModules } from "module";
 
-function collectFiles(dir: string, exts = ['.js', '.ts', '.jsx', '.tsx']) {
+function collectFiles(dir: string, exts = [".js", ".ts", ".jsx", ".tsx"]) {
   let files: string[] = [];
   for (const file of readdirSync(dir)) {
     const fullPath = join(dir, file);
     const stat = statSync(fullPath);
-    if (stat.isDirectory() && file !== 'node_modules') {
+    if (stat.isDirectory() && file !== "node_modules") {
       files = files.concat(collectFiles(fullPath, exts));
     } else if (exts.includes(extname(file))) {
       files.push(fullPath);
@@ -14,29 +15,38 @@ function collectFiles(dir: string, exts = ['.js', '.ts', '.jsx', '.tsx']) {
   }
   return files;
 }
+const IGNORED_DEPENDENCIES = new Set([
+  "react-dom",
+  "react-server-dom-webpack",
+  "react-devtools-core",
+   "something",
+  ...builtinModules, 
+]);
 
-// Framework-managed or false positives
-const IGNORED_DEPENDENCIES = new Set(['react-dom', 'react-server-dom-webpack', 'react-devtools-core']);
+function shouldIgnore(dep: string): boolean {
+  if (dep.startsWith("@types/")) return true;
+
+  return IGNORED_DEPENDENCIES.has(dep);
+}
 
 export function findUsedDependencies(projectPath: string): string[] {
   const files = collectFiles(projectPath);
   const used = new Set<string>();
 
-  // Matches `import x from 'dep'` or `import 'dep'`
-  const importRegex = /import\s+(?:[^'"]+from\s+)?['"](@?[a-zA-Z0-9][a-zA-Z0-9._\-\/]*)['"]/g;
-  // Matches `require('dep')`
-  const requireRegex = /require\(\s*['"](@?[a-zA-Z0-9][a-zA-Z0-9._\-\/]*)['"]\s*\)/g;
+  const importRegex =
+    /import\s+(?:[^'"]+from\s+)?['"](@?[a-zA-Z0-9][a-zA-Z0-9._\-\/]*)['"]/g;
+  const requireRegex =
+    /require\(\s*['"](@?[a-zA-Z0-9][a-zA-Z0-9._\-\/]*)['"]\s*\)/g;
 
   for (const file of files) {
-    const code = readFileSync(file, 'utf-8');
+    const code = readFileSync(file, "utf-8");
 
     let match: RegExpExecArray | null;
-
     while ((match = importRegex.exec(code)) !== null) {
       const raw = match[1];
       if (raw) {
         const dep = normalizeDep(raw);
-        if (!dep.startsWith('.')) {
+        if (!dep.startsWith(".") && !IGNORED_DEPENDENCIES.has(dep)) {
           used.add(dep);
         }
       }
@@ -46,7 +56,7 @@ export function findUsedDependencies(projectPath: string): string[] {
       const raw = match[1];
       if (raw) {
         const dep = normalizeDep(raw);
-        if (!dep.startsWith('.')) {
+        if (!dep.startsWith(".") && !IGNORED_DEPENDENCIES.has(dep)) {
           used.add(dep);
         }
       }
@@ -56,23 +66,30 @@ export function findUsedDependencies(projectPath: string): string[] {
   return [...used];
 }
 
-function normalizeDep(dep: string): string {
-  if (dep.startsWith('@')) {
-    const parts = dep.split('/');
+function normalizeDep(dep: any): string {
+  if (dep.startsWith("@")) {
+    const parts = dep.split("/");
     return parts.length >= 2 ? `${parts[0]}/${parts[1]}` : dep;
   }
-  return dep.split('/')[0];
+  return dep.split("/")[0];
 }
 
 export function analyzeDependencies(projectPath: string, used: string[]) {
-  const pkgJson = JSON.parse(readFileSync(join(projectPath, 'package.json'), 'utf-8'));
+  const pkgJson = JSON.parse(
+    readFileSync(join(projectPath, "package.json"), "utf-8")
+  );
 
-  const installed = Object.keys(pkgJson.dependencies || {}); 
-  const installedSet = new Set(installed);
+  const deps = Object.keys(pkgJson.dependencies || {}); 
+  const depsSet = new Set(deps);
   const usedSet = new Set(used);
 
-  const unused = installed.filter((dep) => !usedSet.has(dep) && !IGNORED_DEPENDENCIES.has(dep));
-  const missing = used.filter((dep) => !installedSet.has(dep) && !IGNORED_DEPENDENCIES.has(dep));
+  const unused = deps.filter(
+    (dep) => !usedSet.has(dep) && !shouldIgnore(dep)
+  );
 
-  return {used, unused, missing};
+  const missing = used.filter(
+    (dep) => !depsSet.has(dep) && !shouldIgnore(dep)
+  );
+
+  return { used, unused, missing };
 }
