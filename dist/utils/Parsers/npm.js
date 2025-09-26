@@ -6,6 +6,8 @@ const path_1 = require("path");
 const parseNpm = (projectPath) => {
     const pkgFile = (0, path_1.join)(projectPath, 'package.json');
     const lockFile = (0, path_1.join)(projectPath, 'package-lock.json');
+    console.log(pkgFile);
+    console.log(lockFile);
     const pkgJson = JSON.parse((0, fs_1.readFileSync)(pkgFile, 'utf-8'));
     const lockJson = JSON.parse((0, fs_1.readFileSync)(lockFile, 'utf-8'));
     const declared = {

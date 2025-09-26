@@ -4,6 +4,9 @@ import {join} from 'path';
 export const parseNpm = (projectPath: string) => {
   const pkgFile = join(projectPath, 'package.json');
   const lockFile = join(projectPath, 'package-lock.json');
+  console.log(pkgFile);
+  console.log(lockFile);
+  
 
   const pkgJson = JSON.parse(readFileSync(pkgFile, 'utf-8'));
   const lockJson = JSON.parse(readFileSync(lockFile, 'utf-8'));
