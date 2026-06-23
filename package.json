@@ -1,15 +1,19 @@
 {
  "name": "tidy-deps",
   "version": "1.0.4",
-  "description": "Easily detect and remove unused npm dependencies",
-  "main": "index.js",
+  "description": "Easily detect and remove unused dependencies",
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
     "start": "ts-node src/index.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prepublishOnly": "npm run build"
   },
   "bin": {
     "tidy-deps": "dist/index.js"
+  },
+  "engines": {
+    "node": ">=16"
   },
   "keywords": [ "dependencies", "clean dependencies", "remove unused dependencies", "unused dependencies", " clean" ,"npm", "yarn", "pnpm"],
   "author": "Tariq Yunusa",
@@ -24,6 +28,9 @@
   },
   "dependencies": {
     "@yarnpkg/lockfile": "^1.1.0",
-    "yaml": "^2.8.1"
+    "yaml": "^2.8.1",
+    "chalk": "^5.0.0",
+    "ora": "^8.0.0",
+    "commander": "^12.0.0"
   }
 }

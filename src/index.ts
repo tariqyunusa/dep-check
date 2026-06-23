@@ -34,7 +34,7 @@ switch (pm) {
 }
 
 const used = findUsedDependencies(projectPath);
-const { unused, missing } = analyzeDependencies(".", used);
+const { unused, missing } = analyzeDependencies(projectPath, used);
 
 console.log("✅ Used:", used);
 console.log("🗑️ Unused:", unused);
