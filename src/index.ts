@@ -14,31 +14,28 @@ const projectPath = process.argv[2] ? resolve(process.argv[2]) : process.cwd();
 const pm = detectPackageManager(projectPath);
 console.log(`Detected package manager: ${pm}`);
 
-let installed: string[] = [];
 switch (pm) {
-  case "npm":
-    installed = parseNpm(projectPath);
-    break;
-  case "yarn":
-    installed = parseYarn(projectPath);
-    break;
-  case "pnpm":
-    installed = parsePnpm(projectPath);
-    break;
-  case "bun":
-    installed = parseBun(projectPath);
-    break;
+  case "npm":    parseNpm(projectPath);  break;
+  case "yarn":   parseYarn(projectPath); break;
+  case "pnpm":   parsePnpm(projectPath); break;
+  case "bun":    parseBun(projectPath);  break;
   default:
     console.log("Unsupported package manager or none detected.");
     process.exit(1);
 }
 
 const used = findUsedDependencies(projectPath);
+
+
 const { unused, missing } = analyzeDependencies(projectPath, used);
 
-console.log("✅ Used:", used);
-console.log("🗑️ Unused:", unused);
+console.log("\n✅ Used:", used);
+console.log("🗑️  Unused:", unused);
 
+
+if (missing.length > 0) {
+  console.log("⚠️  Missing (used in code but not in package.json):", missing);
+}
 
 if (unused.length > 0) {
   const rl = readline.createInterface({
@@ -54,18 +51,10 @@ if (unused.length > 0) {
         try {
           let cmd = "";
           switch (pm) {
-            case "npm":
-              cmd = `npm uninstall ${unused.join(" ")}`;
-              break;
-            case "yarn":
-              cmd = `yarn remove ${unused.join(" ")}`;
-              break;
-            case "pnpm":
-              cmd = `pnpm remove ${unused.join(" ")}`;
-              break;
-            case "bun":
-              cmd = `bun remove ${unused.join(" ")}`;
-              break;
+            case "npm":  cmd = `npm uninstall ${unused.join(" ")}`;  break;
+            case "yarn": cmd = `yarn remove ${unused.join(" ")}`;    break;
+            case "pnpm": cmd = `pnpm remove ${unused.join(" ")}`;    break;
+            case "bun":  cmd = `bun remove ${unused.join(" ")}`;     break;
           }
 
           if (cmd) {
