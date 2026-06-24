@@ -34,6 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
+const commander_1 = require("commander");
 const detect_1 = require("./utils/detect");
 const npm_1 = require("./utils/Parsers/npm");
 const yarn_1 = require("./utils/Parsers/yarn");
@@ -43,32 +44,51 @@ const dependencyChecks_1 = require("./utils/dependencyChecks");
 const path_1 = require("path");
 const readline = __importStar(require("readline"));
 const child_process_1 = require("child_process");
-const projectPath = process.argv[2] ? (0, path_1.resolve)(process.argv[2]) : process.cwd();
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const pkg = require("../package.json");
+const program = new commander_1.Command();
+program
+    .name("tidy-deps")
+    .description("Detect and remove unused npm dependencies")
+    .version(pkg.version)
+    .argument("[path]", "path to project (defaults to current directory)")
+    .option("--no-remove", "skip the removal prompt")
+    .option("--audit", "run audit checks on your dependencies")
+    .parse(process.argv);
+const options = program.opts();
+const projectPath = program.args[0] ? (0, path_1.resolve)(program.args[0]) : process.cwd();
 const pm = (0, detect_1.detectPackageManager)(projectPath);
-console.log(`Detected package manager: ${pm}`);
-let installed = [];
+console.log(`\nDetected package manager: ${pm}`);
 switch (pm) {
     case "npm":
-        installed = (0, npm_1.parseNpm)(projectPath);
+        (0, npm_1.parseNpm)(projectPath);
         break;
     case "yarn":
-        installed = (0, yarn_1.parseYarn)(projectPath);
+        (0, yarn_1.parseYarn)(projectPath);
         break;
     case "pnpm":
-        installed = (0, pnpm_1.parsePnpm)(projectPath);
+        (0, pnpm_1.parsePnpm)(projectPath);
         break;
     case "bun":
-        installed = (0, bun_1.parseBun)(projectPath);
+        (0, bun_1.parseBun)(projectPath);
         break;
     default:
         console.log("Unsupported package manager or none detected.");
         process.exit(1);
 }
 const used = (0, dependencyChecks_1.findUsedDependencies)(projectPath);
-const { unused, missing } = (0, dependencyChecks_1.analyzeDependencies)(".", used);
-console.log("✅ Used:", used);
-console.log("🗑️ Unused:", unused);
-if (unused.length > 0) {
+const { unused, missing } = (0, dependencyChecks_1.analyzeDependencies)(projectPath, used);
+console.log("\n✅ Used:", used);
+console.log("🗑️  Unused:", unused);
+if (missing.length > 0) {
+    console.log("⚠️  Missing (used in code but not in package.json):", missing);
+}
+// --audit flag (placeholder for now, we'll expand this next)
+if (options.audit) {
+    console.log("\n🔍 Audit coming soon...");
+}
+// --no-remove skips the prompt entirely
+if (unused.length > 0 && options.remove !== false) {
     const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout,
@@ -106,5 +126,8 @@ if (unused.length > 0) {
             console.log("⚡ Skipping removal.");
         }
     });
+}
+else if (unused.length === 0) {
+    console.log("\n✨ No unused dependencies found!");
 }
 //# sourceMappingURL=index.js.map

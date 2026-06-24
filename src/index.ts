@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { Command } from "commander";
 import { detectPackageManager } from "./utils/detect";
 import { parseNpm } from "./utils/Parsers/npm";
 import { parseYarn } from "./utils/Parsers/yarn";
@@ -8,11 +9,25 @@ import { findUsedDependencies, analyzeDependencies } from "./utils/dependencyChe
 import { resolve } from "path";
 import * as readline from "readline";
 import { execSync } from "child_process";
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const pkg = require("../package.json");
 
-const projectPath = process.argv[2] ? resolve(process.argv[2]) : process.cwd();
+const program = new Command();
+
+program
+  .name("tidy-deps")
+  .description("Detect and remove unused npm dependencies")
+  .version(pkg.version)
+  .argument("[path]", "path to project (defaults to current directory)")
+  .option("--no-remove", "skip the removal prompt")
+  .option("--audit", "run audit checks on your dependencies")
+  .parse(process.argv);
+
+const options = program.opts();
+const projectPath = program.args[0] ? resolve(program.args[0]) : process.cwd();
 
 const pm = detectPackageManager(projectPath);
-console.log(`Detected package manager: ${pm}`);
+console.log(`\nDetected package manager: ${pm}`);
 
 switch (pm) {
   case "npm":    parseNpm(projectPath);  break;
@@ -25,19 +40,22 @@ switch (pm) {
 }
 
 const used = findUsedDependencies(projectPath);
-
-
 const { unused, missing } = analyzeDependencies(projectPath, used);
 
 console.log("\n✅ Used:", used);
 console.log("🗑️  Unused:", unused);
 
-
 if (missing.length > 0) {
   console.log("⚠️  Missing (used in code but not in package.json):", missing);
 }
 
-if (unused.length > 0) {
+// --audit flag (placeholder for now, we'll expand this next)
+if (options.audit) {
+  console.log("\n🔍 Audit coming soon...");
+}
+
+// --no-remove skips the prompt entirely
+if (unused.length > 0 && options.remove !== false) {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -70,4 +88,6 @@ if (unused.length > 0) {
       }
     }
   );
+} else if (unused.length === 0) {
+  console.log("\n✨ No unused dependencies found!");
 }
