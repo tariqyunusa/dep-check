@@ -1,10 +1,12 @@
 {
  "name": "tidy-deps",
- "version": "1.0.4",
+ "version": "0.2.0",
  "description": "Easily detect and remove unused dependencies",
  "main": "dist/index.js",
+ "files": ["dist"],
  "scripts": {
   "build": "tsc",
+  "postbuild": "node -e \"const fs=require('fs');const f='dist/index.js';fs.writeFileSync(f,'#!/usr/bin/env node\\n'+fs.readFileSync(f,'utf8'));\"",
   "start": "ts-node src/index.ts",
   "test": "vitest run",
   "prepublishOnly": "npm run build"
