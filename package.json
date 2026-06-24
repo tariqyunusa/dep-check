@@ -1,6 +1,6 @@
 {
  "name": "tidy-deps",
- "version": "0.2.0",
+ "version": "2.0.1",
  "description": "Easily detect and remove unused dependencies",
  "main": "dist/index.js",
  "files": ["dist"],
