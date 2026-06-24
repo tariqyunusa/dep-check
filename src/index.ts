@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import { Command } from "commander";
 import { detectPackageManager } from "./utils/detect";
 import { parseNpm } from "./utils/Parsers/npm";
