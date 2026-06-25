@@ -8,6 +8,7 @@ import { findUsedDependencies, analyzeDependencies } from "./utils/dependencyChe
 import { resolve } from "path";
 import * as readline from "readline";
 import { execSync } from "child_process";
+import { runAudit } from "./utils/audit/index";
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const pkg = require("../package.json");
 
@@ -22,7 +23,8 @@ program
   .option("--audit", "run audit checks on your dependencies")
   .parse(process.argv);
 
-const options = program.opts();
+(async () => {
+  const options = program.opts();
 const projectPath = program.args[0] ? resolve(program.args[0]) : process.cwd();
 
 const pm = detectPackageManager(projectPath);
@@ -49,8 +51,10 @@ if (missing.length > 0) {
 }
 
 // --audit flag (placeholder for now, we'll expand this next)
+// replace the audit placeholder with:
 if (options.audit) {
-  console.log("\n🔍 Audit coming soon...");
+  const { runAudit } = await import("./utils/audit/index");
+  await runAudit(projectPath);
 }
 
 // --no-remove skips the prompt entirely
@@ -90,3 +94,4 @@ if (unused.length > 0 && options.remove !== false) {
 } else if (unused.length === 0) {
   console.log("\n✨ No unused dependencies found!");
 }
+})()

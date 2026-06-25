@@ -55,79 +55,83 @@ program
     .option("--no-remove", "skip the removal prompt")
     .option("--audit", "run audit checks on your dependencies")
     .parse(process.argv);
-const options = program.opts();
-const projectPath = program.args[0] ? (0, path_1.resolve)(program.args[0]) : process.cwd();
-const pm = (0, detect_1.detectPackageManager)(projectPath);
-console.log(`\nDetected package manager: ${pm}`);
-switch (pm) {
-    case "npm":
-        (0, npm_1.parseNpm)(projectPath);
-        break;
-    case "yarn":
-        (0, yarn_1.parseYarn)(projectPath);
-        break;
-    case "pnpm":
-        (0, pnpm_1.parsePnpm)(projectPath);
-        break;
-    case "bun":
-        (0, bun_1.parseBun)(projectPath);
-        break;
-    default:
-        console.log("Unsupported package manager or none detected.");
-        process.exit(1);
-}
-const used = (0, dependencyChecks_1.findUsedDependencies)(projectPath);
-const { unused, missing } = (0, dependencyChecks_1.analyzeDependencies)(projectPath, used);
-console.log("\n✅ Used:", used);
-console.log("🗑️  Unused:", unused);
-if (missing.length > 0) {
-    console.log("⚠️  Missing (used in code but not in package.json):", missing);
-}
-// --audit flag (placeholder for now, we'll expand this next)
-if (options.audit) {
-    console.log("\n🔍 Audit coming soon...");
-}
-// --no-remove skips the prompt entirely
-if (unused.length > 0 && options.remove !== false) {
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout,
-    });
-    rl.question(`\nDo you want to remove unused dependencies? (${unused.join(", ")}) [y/N]: `, (answer) => {
-        rl.close();
-        if (answer.toLowerCase() === "y") {
-            try {
-                let cmd = "";
-                switch (pm) {
-                    case "npm":
-                        cmd = `npm uninstall ${unused.join(" ")}`;
-                        break;
-                    case "yarn":
-                        cmd = `yarn remove ${unused.join(" ")}`;
-                        break;
-                    case "pnpm":
-                        cmd = `pnpm remove ${unused.join(" ")}`;
-                        break;
-                    case "bun":
-                        cmd = `bun remove ${unused.join(" ")}`;
-                        break;
+(async () => {
+    const options = program.opts();
+    const projectPath = program.args[0] ? (0, path_1.resolve)(program.args[0]) : process.cwd();
+    const pm = (0, detect_1.detectPackageManager)(projectPath);
+    console.log(`\nDetected package manager: ${pm}`);
+    switch (pm) {
+        case "npm":
+            (0, npm_1.parseNpm)(projectPath);
+            break;
+        case "yarn":
+            (0, yarn_1.parseYarn)(projectPath);
+            break;
+        case "pnpm":
+            (0, pnpm_1.parsePnpm)(projectPath);
+            break;
+        case "bun":
+            (0, bun_1.parseBun)(projectPath);
+            break;
+        default:
+            console.log("Unsupported package manager or none detected.");
+            process.exit(1);
+    }
+    const used = (0, dependencyChecks_1.findUsedDependencies)(projectPath);
+    const { unused, missing } = (0, dependencyChecks_1.analyzeDependencies)(projectPath, used);
+    console.log("\n✅ Used:", used);
+    console.log("🗑️  Unused:", unused);
+    if (missing.length > 0) {
+        console.log("⚠️  Missing (used in code but not in package.json):", missing);
+    }
+    // --audit flag (placeholder for now, we'll expand this next)
+    // replace the audit placeholder with:
+    if (options.audit) {
+        const { runAudit } = await Promise.resolve().then(() => __importStar(require("./utils/audit/index")));
+        await runAudit(projectPath);
+    }
+    // --no-remove skips the prompt entirely
+    if (unused.length > 0 && options.remove !== false) {
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout,
+        });
+        rl.question(`\nDo you want to remove unused dependencies? (${unused.join(", ")}) [y/N]: `, (answer) => {
+            rl.close();
+            if (answer.toLowerCase() === "y") {
+                try {
+                    let cmd = "";
+                    switch (pm) {
+                        case "npm":
+                            cmd = `npm uninstall ${unused.join(" ")}`;
+                            break;
+                        case "yarn":
+                            cmd = `yarn remove ${unused.join(" ")}`;
+                            break;
+                        case "pnpm":
+                            cmd = `pnpm remove ${unused.join(" ")}`;
+                            break;
+                        case "bun":
+                            cmd = `bun remove ${unused.join(" ")}`;
+                            break;
+                    }
+                    if (cmd) {
+                        console.log(`🔧 Running: ${cmd}`);
+                        (0, child_process_1.execSync)(cmd, { stdio: "inherit", cwd: projectPath });
+                        console.log("✅ Unused dependencies removed!");
+                    }
                 }
-                if (cmd) {
-                    console.log(`🔧 Running: ${cmd}`);
-                    (0, child_process_1.execSync)(cmd, { stdio: "inherit", cwd: projectPath });
-                    console.log("✅ Unused dependencies removed!");
+                catch (err) {
+                    console.error("❌ Failed to uninstall dependencies:", err);
                 }
             }
-            catch (err) {
-                console.error("❌ Failed to uninstall dependencies:", err);
+            else {
+                console.log("⚡ Skipping removal.");
             }
-        }
-        else {
-            console.log("⚡ Skipping removal.");
-        }
-    });
-}
-else if (unused.length === 0) {
-    console.log("\n✨ No unused dependencies found!");
-}
+        });
+    }
+    else if (unused.length === 0) {
+        console.log("\n✨ No unused dependencies found!");
+    }
+})();
 //# sourceMappingURL=index.js.map
