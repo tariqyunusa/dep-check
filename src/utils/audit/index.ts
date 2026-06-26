@@ -31,25 +31,24 @@ export async function runAudit(projectPath: string): Promise<void> {
   const spinner = ora(`${allDeps[0]}...\n${renderBar(0)}`).start();
 
   const onOutdatedProgress = (pkg: string) => {
-    completed++;
-    const percent = Math.round((completed / total) * 50);
-    spinner.text = `${pkg}...\n${renderBar(percent)}`;
-  };
+  completed++;
+  const percent = Math.round((completed / total) * 50);
+  spinner.text = `${pkg}...\n${renderBar(percent)}`;
+};
 
-  const onDeprecatedProgress = (pkg: string) => {
-    completed++;
-    const percent = 50 + Math.round(((completed - total) / total) * 50);
-    spinner.text = `${pkg}...\n${renderBar(percent)}`;
-  };
+const onDeprecatedProgress = (pkg: string) => {
+  completed++;
+  const percent = Math.min(100, Math.round((completed / total) * 50));
+  spinner.text = `${pkg}...\n${renderBar(percent)}`;
+};
 
-  const lockResults = checkLockfile(projectPath);
-  const licenseResults = checkLicenses(projectPath);
-  const outdatedResults = await checkOutdated(projectPath, onOutdatedProgress);
+const lockResults = checkLockfile(projectPath);
+const licenseResults = checkLicenses(projectPath);
+const outdatedResults = await checkOutdated(projectPath, onOutdatedProgress);
+// no reset — completed keeps going from total to total*2
+const deprecatedResults = await checkDeprecated(projectPath, onDeprecatedProgress);
 
-  completed = 0; // reset for second pass
-  const deprecatedResults = await checkDeprecated(projectPath, onDeprecatedProgress);
-
-  spinner.succeed(`done\n${renderBar(100)}`);
+spinner.succeed(`done\n${renderBar(100)}`);
 
   // collect and print
   const all: AuditResult[] = [
