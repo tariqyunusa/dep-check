@@ -44,6 +44,7 @@ const dependencyChecks_1 = require("./utils/dependencyChecks");
 const path_1 = require("path");
 const readline = __importStar(require("readline"));
 const child_process_1 = require("child_process");
+const index_1 = require("./utils/audit/index");
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const pkg = require("../package.json");
 const program = new commander_1.Command();
@@ -77,6 +78,12 @@ program
             console.log("Unsupported package manager or none detected.");
             process.exit(1);
     }
+    // audit mode — completely separate flow
+    if (options.audit) {
+        await (0, index_1.runAudit)(projectPath);
+        process.exit(0);
+    }
+    // default mode — unused dep detection
     const used = (0, dependencyChecks_1.findUsedDependencies)(projectPath);
     const { unused, missing } = (0, dependencyChecks_1.analyzeDependencies)(projectPath, used);
     console.log("\n✅ Used:", used);
@@ -84,13 +91,6 @@ program
     if (missing.length > 0) {
         console.log("⚠️  Missing (used in code but not in package.json):", missing);
     }
-    // --audit flag (placeholder for now, we'll expand this next)
-    // replace the audit placeholder with:
-    if (options.audit) {
-        const { runAudit } = await Promise.resolve().then(() => __importStar(require("./utils/audit/index")));
-        await runAudit(projectPath);
-    }
-    // --no-remove skips the prompt entirely
     if (unused.length > 0 && options.remove !== false) {
         const rl = readline.createInterface({
             input: process.stdin,
