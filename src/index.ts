@@ -25,73 +25,71 @@ program
 
 (async () => {
   const options = program.opts();
-const projectPath = program.args[0] ? resolve(program.args[0]) : process.cwd();
+  const projectPath = program.args[0] ? resolve(program.args[0]) : process.cwd();
 
-const pm = detectPackageManager(projectPath);
-console.log(`\nDetected package manager: ${pm}`);
+  const pm = detectPackageManager(projectPath);
+  console.log(`\nDetected package manager: ${pm}`);
 
-switch (pm) {
-  case "npm":    parseNpm(projectPath);  break;
-  case "yarn":   parseYarn(projectPath); break;
-  case "pnpm":   parsePnpm(projectPath); break;
-  case "bun":    parseBun(projectPath);  break;
-  default:
-    console.log("Unsupported package manager or none detected.");
-    process.exit(1);
-}
+  switch (pm) {
+    case "npm":    parseNpm(projectPath);  break;
+    case "yarn":   parseYarn(projectPath); break;
+    case "pnpm":   parsePnpm(projectPath); break;
+    case "bun":    parseBun(projectPath);  break;
+    default:
+      console.log("Unsupported package manager or none detected.");
+      process.exit(1);
+  }
 
-const used = findUsedDependencies(projectPath);
-const { unused, missing } = analyzeDependencies(projectPath, used);
+  // audit mode — completely separate flow
+  if (options.audit) {
+    await runAudit(projectPath);
+    process.exit(0);
+  }
 
-console.log("\n✅ Used:", used);
-console.log("🗑️  Unused:", unused);
+  // default mode — unused dep detection
+  const used = findUsedDependencies(projectPath);
+  const { unused, missing } = analyzeDependencies(projectPath, used);
 
-if (missing.length > 0) {
-  console.log("⚠️  Missing (used in code but not in package.json):", missing);
-}
+  console.log("\n✅ Used:", used);
+  console.log("🗑️  Unused:", unused);
 
-// --audit flag (placeholder for now, we'll expand this next)
-// replace the audit placeholder with:
-if (options.audit) {
-  const { runAudit } = await import("./utils/audit/index");
-  await runAudit(projectPath);
-}
+  if (missing.length > 0) {
+    console.log("⚠️  Missing (used in code but not in package.json):", missing);
+  }
 
-// --no-remove skips the prompt entirely
-if (unused.length > 0 && options.remove !== false) {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
+  if (unused.length > 0 && options.remove !== false) {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
 
-  rl.question(
-    `\nDo you want to remove unused dependencies? (${unused.join(", ")}) [y/N]: `,
-    (answer) => {
-      rl.close();
-      if (answer.toLowerCase() === "y") {
-        try {
-          let cmd = "";
-          switch (pm) {
-            case "npm":  cmd = `npm uninstall ${unused.join(" ")}`;  break;
-            case "yarn": cmd = `yarn remove ${unused.join(" ")}`;    break;
-            case "pnpm": cmd = `pnpm remove ${unused.join(" ")}`;    break;
-            case "bun":  cmd = `bun remove ${unused.join(" ")}`;     break;
+    rl.question(
+      `\nDo you want to remove unused dependencies? (${unused.join(", ")}) [y/N]: `,
+      (answer) => {
+        rl.close();
+        if (answer.toLowerCase() === "y") {
+          try {
+            let cmd = "";
+            switch (pm) {
+              case "npm":  cmd = `npm uninstall ${unused.join(" ")}`;  break;
+              case "yarn": cmd = `yarn remove ${unused.join(" ")}`;    break;
+              case "pnpm": cmd = `pnpm remove ${unused.join(" ")}`;    break;
+              case "bun":  cmd = `bun remove ${unused.join(" ")}`;     break;
+            }
+            if (cmd) {
+              console.log(`🔧 Running: ${cmd}`);
+              execSync(cmd, { stdio: "inherit", cwd: projectPath });
+              console.log("✅ Unused dependencies removed!");
+            }
+          } catch (err) {
+            console.error("❌ Failed to uninstall dependencies:", err);
           }
-
-          if (cmd) {
-            console.log(`🔧 Running: ${cmd}`);
-            execSync(cmd, { stdio: "inherit", cwd: projectPath });
-            console.log("✅ Unused dependencies removed!");
-          }
-        } catch (err) {
-          console.error("❌ Failed to uninstall dependencies:", err);
+        } else {
+          console.log("⚡ Skipping removal.");
         }
-      } else {
-        console.log("⚡ Skipping removal.");
       }
-    }
-  );
-} else if (unused.length === 0) {
-  console.log("\n✨ No unused dependencies found!");
-}
-})()
+    );
+  } else if (unused.length === 0) {
+    console.log("\n✨ No unused dependencies found!");
+  }
+})();
