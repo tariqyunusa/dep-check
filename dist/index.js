@@ -86,52 +86,71 @@ program
     // default mode — unused dep detection
     const used = (0, dependencyChecks_1.findUsedDependencies)(projectPath);
     const { unused, missing } = (0, dependencyChecks_1.analyzeDependencies)(projectPath, used);
-    console.log("\n✅ Used:", used);
-    console.log("🗑️  Unused:", unused);
+    if (unused.length > 0) {
+        console.log(`\nFound ${unused.length} unused ${unused.length === 1 ? "dependency" : "dependencies"}:\n`);
+        for (const dep of unused) {
+            console.log(`  · ${dep}`);
+        }
+    }
     if (missing.length > 0) {
-        console.log("⚠️  Missing (used in code but not in package.json):", missing);
+        console.log(`\nFound ${missing.length} missing ${missing.length === 1 ? "dependency" : "dependencies"} (used in code but not in package.json):\n`);
+        for (const dep of missing) {
+            console.log(`  · ${dep}`);
+        }
     }
     if (unused.length > 0 && options.remove !== false) {
         const rl = readline.createInterface({
             input: process.stdin,
             output: process.stdout,
         });
-        rl.question(`\nDo you want to remove unused dependencies? (${unused.join(", ")}) [y/N]: `, (answer) => {
+        rl.question(`\nEnter numbers to remove (e.g. 1,3) or "all" or "none": `, (answer) => {
             rl.close();
-            if (answer.toLowerCase() === "y") {
-                try {
-                    let cmd = "";
-                    switch (pm) {
-                        case "npm":
-                            cmd = `npm uninstall ${unused.join(" ")}`;
-                            break;
-                        case "yarn":
-                            cmd = `yarn remove ${unused.join(" ")}`;
-                            break;
-                        case "pnpm":
-                            cmd = `pnpm remove ${unused.join(" ")}`;
-                            break;
-                        case "bun":
-                            cmd = `bun remove ${unused.join(" ")}`;
-                            break;
-                    }
-                    if (cmd) {
-                        console.log(`🔧 Running: ${cmd}`);
-                        (0, child_process_1.execSync)(cmd, { stdio: "inherit", cwd: projectPath });
-                        console.log("✅ Unused dependencies removed!");
-                    }
-                }
-                catch (err) {
-                    console.error("❌ Failed to uninstall dependencies:", err);
-                }
+            const trimmed = answer.trim().toLowerCase();
+            if (trimmed === "none" || trimmed === "") {
+                console.log("⚡ Skipping removal.");
+                return;
+            }
+            let toRemove = [];
+            if (trimmed === "all") {
+                toRemove = unused;
             }
             else {
-                console.log("⚡ Skipping removal.");
+                const indices = trimmed
+                    .split(",")
+                    .map((n) => parseInt(n.trim(), 10) - 1)
+                    .filter((i) => i >= 0 && i < unused.length);
+                if (indices.length === 0) {
+                    console.log("⚡ No valid selections, skipping removal.");
+                    return;
+                }
+                toRemove = indices.map((i) => unused[i]).filter((dep) => dep !== undefined);
+            }
+            try {
+                let cmd = "";
+                switch (pm) {
+                    case "npm":
+                        cmd = `npm uninstall ${toRemove.join(" ")}`;
+                        break;
+                    case "yarn":
+                        cmd = `yarn remove ${toRemove.join(" ")}`;
+                        break;
+                    case "pnpm":
+                        cmd = `pnpm remove ${toRemove.join(" ")}`;
+                        break;
+                    case "bun":
+                        cmd = `bun remove ${toRemove.join(" ")}`;
+                        break;
+                }
+                if (cmd) {
+                    console.log(`\n🔧 Running: ${cmd}\n`);
+                    (0, child_process_1.execSync)(cmd, { stdio: "inherit", cwd: projectPath });
+                    console.log("\n✅ Done!");
+                }
+            }
+            catch (err) {
+                console.error("❌ Failed to uninstall dependencies:", err);
             }
         });
-    }
-    else if (unused.length === 0) {
-        console.log("\n✨ No unused dependencies found!");
     }
 })();
 //# sourceMappingURL=index.js.map
