@@ -1,51 +1,107 @@
 # tidy-deps
 
-Easily detect and remove unused npm dependencies in your project.
+A CLI tool to detect unused dependencies, audit package health, and keep your `node_modules` clean.
 
-##  Features
-- Scan your `package.json` for unused dependencies
-- Interactive prompts before deleting
-- Automatically uninstall unused packages
-- Supports both `dependencies` and `devDependencies`
+```bash
+npx tidy-deps
+```
 
 ---
 
-##  Installation
+## Features
 
-### 1. Install globally
-```bash
-npm install -g tidy-deps
-```
-### 2. Navigate to your project
-```bash
-cd my-project
-```
+- Detects unused dependencies across `dependencies` and `devDependencies`
+- Selective removal — choose which packages to remove individually
+- Supports `npm`, `yarn`, `pnpm`, and `bun`
+- Audit mode with package health checks
+- Zero config — works out of the box in any Node.js project
 
-### 3. Run tidy-deps
-```bash
-tidy-deps
-```
+---
 
 ## Usage
-Simply run the command inside any Node.js project:
+
+### Detect unused dependencies
+
 ```bash
-tidy-deps
+npx tidy-deps
 ```
 
-### Example output:
-```bash
-? Unused dependency found: chalk
-  Do you want to remove it? (y/N) y
-✔ chalk removed successfully
-
-? Unused dependency found: lodash
-  Do you want to remove it? (y/N) n
-✖ lodash kept
 ```
+Detected package manager: npm
+
+Found 3 unused dependencies:
+
+  · @yarnpkg/lockfile
+  · chalk
+  · yaml
+
+Enter numbers to remove (e.g. 1,3) or "all" or "none":
+```
+
+### Run on a specific project
+
+```bash
+npx tidy-deps ./my-project
+```
+
+### Skip the removal prompt
+
+```bash
+npx tidy-deps --no-remove
+```
+
+---
+
+## Audit Mode
+
+Run a full health check on your dependencies:
+
+```bash
+npx tidy-deps --audit
+```
+
+```
+🔍 Running audit...
+
+✔ [████████████████████] 100% — done
+
+┌─ Outdated ─────────────────────────────────────────────┐
+│  MAJOR    commander            ^12.1.0 → 15.0.0        │
+│  MINOR    chalk                ^5.0.0  → 5.6.2         │
+└────────────────────────────────────────────────────────┘
+
+┌─ Summary ──────────────────────────────────────────────┐
+│  5 errors · 3 warnings · 0 info                        │
+└────────────────────────────────────────────────────────┘
+```
+
+Audit checks include:
+
+- **Outdated** — detects patch, minor, and major updates available on npm
+- **Deprecated** — flags packages marked deprecated by their authors
+- **Licenses** — surfaces risky copyleft licenses (GPL, AGPL, LGPL)
+- **Lockfile** — checks your lockfile is in sync with `package.json`
+
+---
+
+## Options
+
+| Flag | Description |
+|------|-------------|
+| `[path]` | Path to project (defaults to current directory) |
+| `--audit` | Run dependency health checks |
+| `--no-remove` | Skip the removal prompt |
+| `--version` | Show version number |
+| `--help` | Show help |
+
+---
 
 ## Requirements
-Node.js >= 14
 
-## 📜 License
-MIT © 2025 Tariq Yunusa
+Node.js >= 16
 
+---
+
+## License
+
+MIT © 2026 Tariq Yunusa
